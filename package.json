@@ -1,0 +1,22 @@
+{
+  "name": "programatic-migration",
+  "version": "1.0.0",
+  "description": "Migration scripts for State Guides from PayloadCMS (MongoDB) to Statamic",
+  "main": "migrate-state-hybrid.js",
+  "scripts": {
+    "migrate": "node migrate-state-hybrid.js"
+  },
+  "keywords": [
+    "migration",
+    "statamic",
+    "mongodb",
+    "payloadcms"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "js-yaml": "^4.1.1",
+    "mongodb": "^6.21.0",
+    "uuid": "^9.0.1"
+  }
+}

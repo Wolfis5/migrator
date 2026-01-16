@@ -1,0 +1,159 @@
+================================================================================
+MIGRATION OF STATE GUIDES FROM PAYLOAD CMS - PROCESS DOCUMENTATION
+================================================================================
+
+Project: migrator (Programatic Migration)
+Purpose: Migrate State Guides from PayloadCMS (MongoDB) to Statamic CMS
+Collection: /content/collections/guides/
+
+================================================================================
+HUMAN STEPS (Manual Process)
+================================================================================
+
+STEP 1: Initial Setup (One-Time)
+--------------------------------
+- Prerequisites:
+  * Node.js installed
+  * Access to MongoDB database (connection string)
+  * bizee.com project repository checked out locally
+
+- Install dependencies in bizee.com directory:
+  cd /path/to/bizee.com
+  npm install mongodb js-yaml uuid
+
+- Create .env file in the migrator directory with:
+  MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database
+  MONGODB_DATABASE=test
+  MONGODB_COLLECTION=pages
+
+STEP 2: Run Migration Command
+-----------------------------
+- Navigate to bizee.com directory
+- Execute the migration script with state slug and number:
+
+  cd /path/to/bizee.com
+  node ../migrator/migrate-state-hybrid.js <state-slug> <state-number>
+
+- Example for Maine (state number 20):
+  node ../migrator/migrate-state-hybrid.js maine 20
+
+STEP 3: Verify Results
+----------------------
+- Check if files were generated:
+  ls -l content/collections/guides/*{state}*
+
+- Check the navigation tree changes:
+  git diff content/trees/collections/guides.yaml
+
+- Verify 6 files were created:
+  * {state}.md (Main page)
+  * business-names.{state}.md
+  * registered-agent.{state}.md
+  * filing-fees-requirements.{state}.md
+  * business-taxes.{state}.md
+  * faqs.{state}.md
+
+
+================================================================================
+SCRIPT STEPS (Automated Process)
+================================================================================
+
+STEP 1: Initialization
+----------------------
+- Accepts state slug (e.g., maine) and state number as parameters
+- Loads environment variables from .env file
+- Establishes MongoDB connection
+
+STEP 2: Data Gathering
+----------------------
+- Connects to MongoDB to fetch documents for:
+  * Main state page
+  * 5 child pages (business names, registered agent, fees, taxes, FAQs)
+- Fetches live HTML from bizee.com for each page
+
+STEP 3: Content Extraction & Transformation
+-------------------------------------------
+- Parses HTML to identify:
+  * Headers and paragraphs
+  * Lists and formatted content
+  * Videos (Wistia, YouTube)
+  * Custom components (Cards, Info Cards)
+- Cleans up HTML artifacts (non-breaking spaces, entities)
+- Transforms content to Statamic's Bard field format
+
+STEP 4: File Generation
+-----------------------
+- Creates Markdown (.md) files with YAML frontmatter
+- Generates unique UUIDs for each entry
+- Sets SEO metadata (custom or default)
+- Configures blueprint settings
+- Output: 6 files per state in content/collections/guides/
+
+STEP 5: Tree Update
+-------------------
+- Updates Statamic navigation tree (guides.yaml)
+- Inserts new state and children in correct hierarchy
+- Preserves existing formatting and indentation
+
+
+================================================================================
+KEY FILES
+================================================================================
+
+Scripts:
+- migrate-state-hybrid.js    -> Main script for LLC state guides
+- llc-guide.js               -> LLC guides migration
+- corp-guide.js              -> Corporation guides migration
+- test_extract_text.js       -> Test script for text extraction
+- test_list_parsing.js       -> Test script for list parsing
+
+Configuration:
+- .env                       -> MongoDB connection settings (not in git)
+- package.json               -> Node.js dependencies
+
+Output Location:
+- /content/collections/guides/{state}.md
+- /content/collections/guides/{child-page}.{state}.md
+
+Tree File:
+- /content/trees/collections/guides.yaml
+
+
+================================================================================
+IMPORTANT NOTES
+================================================================================
+
+1. Use state names (maine) not numbers (20) for file naming
+2. Preserve YAML tree format (dashes, indentation)
+3. Parent-child structure must be correct (child pages under main)
+4. HTML enrichment ensures complete content from production
+5. Wistia videos are transformed correctly
+6. Existing IDs are reused if files already exist
+7. Always run from bizee.com directory, not from migrator directory
+8. Verify MongoDB IP is whitelisted in Atlas before running
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Error: Cannot find module 'mongodb'
+-----------------------------------
+Solution: Run npm install mongodb in bizee.com directory
+
+Error: HTTP 404
+---------------
+Cause: Script couldn't fetch HTML from bizee.com
+Solution: Verify state slug is correct and page exists on live site
+
+Error: MongoNetworkError
+------------------------
+Cause: Connection to MongoDB failed
+Solution: Check internet/VPN, verify MONGODB_URI, whitelist IP in Atlas
+
+Error: Cannot find .env file
+----------------------------
+Solution: Create .env file in migrator directory with MongoDB credentials
+
+
+================================================================================
